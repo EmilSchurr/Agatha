@@ -86,10 +86,10 @@ async def on_message(message):
                 await voicechannel.disconnect()
             #for scoreboard
             mydb = mysql.connector.connect(
-                host="localhost",
-                user="emil_schurr",
-                password="SchnupfGurgel1",
-                database="agatha"
+                host="*****",
+                user="*****",
+                password="*****",
+                database="*****"
             )
             mycursor = mydb.cursor()
             arg = str("'" + argument[0] + "'")
