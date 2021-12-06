@@ -112,4 +112,4 @@ async def on_message(message):
                 mycursor.execute(sql)
                 mydb.commit()
    
-client.run('NzgyMzgxNzc2ODkzOTAyOTIw.X8LXzw.9TFGQBr62u7BQW-ufiN6I-pFFQw')
+client.run('*****')
