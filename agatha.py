@@ -34,14 +34,14 @@ async def on_message(message):
         #here should follow a help command
         #now there is a hlep command
         if argument[0] == "help":
-            files = [f for f in listdir("/home/emil_schurr/discord_bots/agatha/normalized") if isfile(join("/home/emil_schurr/discord_bots/agatha/normalized", f))]
-            await message.channel.send(str(files)+ " clear, leave, ping, load")
+            await message.channel.send("Management Commands: clear [number of messages], leave, ping, load, top [number of rows]")
+            await message.channel.send("https://emilano.de/assets/commands.png")
         #ping    
         if argument[0] == "ping":
             await message.channel.send('My ping is ' + str(round(client.latency * 1000)) + ' ms, how about yours?')
         #disconnect
         if argument[0] == "leave":
-            await voicechannel.disconnect()     
+            await voicechannel.disconnect()
         #purge
         if argument[0] == "clear":
             amount = int(argument[1])+1
@@ -53,20 +53,30 @@ async def on_message(message):
         if argument[0] == "load":
             await message.channel.send('Copying files...')
             await message.channel.send('Applying earrape protection...')
-            for filename in os.listdir('/home/emil_schurr/discord_bots/agatha/mp3'):
-                os.system('ffmpeg-normalize /home/emil_schurr/discord_bots/agatha/mp3/' +filename)
+            for filename in os.listdir('/discord_bots/agatha/mp3/'):
+                os.system('ffmpeg-normalize /discord_bots/agatha/mp3/'+filename+' -o normalized/'+filename+' -c:a mp3')
             await message.channel.purge(limit=2)
             await message.channel.send('Done')
-
+        #restart
         if argument[0] == "restart":
             await message.channel.send('Restarting... This may take a while')
-            os.system('/home/emil_schurr/discord_bots/agatha/agatha.sh')
+            os.system('/discord_bots/agatha/agatha.sh')
             exit()
+        #scoreboard in discord
+        if argument[0] == "top":
+            cnx = mysql.connector.connect(host="*****", user="*****", password="*****", database="*****")
+            cursor = cnx.cursor()
+            sql = str('SELECT `command`, `counter` FROM `counter` ORDER BY `counter` DESC LIMIT '+ argument[1])
+            cursor.execute(sql)
+            for row in cursor:
+                await message.channel.send(row)
+            cursor.close()
+            cnx.close()
         #play filename    
         else:
             channel = message.author.voice.channel
             voicechannel = await channel.connect()
-            voicechannel.play(discord.FFmpegPCMAudio('/home/emil_schurr/discord_bots/agatha/normalized/' + argument[0] + '.mkv',)) 
+            voicechannel.play(discord.FFmpegPCMAudio(normalized/' + argument[0] + '.mp3',)) 
             while voicechannel.is_playing():
                 if argument[0] == "leave":
                     await voicechannel.disconnect()
@@ -75,31 +85,30 @@ async def on_message(message):
             else:
                 await voicechannel.disconnect()
             #for scoreboard
-            mydb = mysql.connector.connect(
-                host="*****",
-                user="*****",
-                password="*****",
-                database="*****"
-            )
-            mycursor = mydb.cursor()
+            cnx = mysql.connector.connect(host="*****", user="*****", password="*****", database="*****")
+            cursor = cnx.cursor()
             arg = str("'" + argument[0] + "'")
             sql = str("SELECT `counter` FROM `counter` WHERE `command`= " +arg)
             val = (arg)
-            mycursor.execute(sql)
-            c = mycursor.fetchone()
+            cursor.execute(sql)
+            c = cursor.fetchone()
             print(c)
             if c == None:
-                sql = "INSERT INTO counter (command, counter, uploaded, nr) VALUES (%s, %s, %s, %s)"
-                val = (argument[0], "1", "hyperabstrakt", "1")
-                mycursor.execute(sql, val)
-                mydb.commit()
+                with cnx.cursor() as cursor:
+                    sql = "INSERT INTO counter (command, counter, uploaded, nr) VALUES (%s, %s, %s, %s)"
+                    val = (argument[0], "1", "hyperabstrakt", "1")
+                    cursor.execute(sql, val)
+                    cnx.commit()
+                cursor.close()
             else:
-                cn = int(str(c)[1:-2])
-                sql = str("UPDATE `counter` SET `counter`=" + str(cn+1) +  " WHERE `command`= " +arg)
-                val = (cn+1, arg)
-                print(cn+1)
-                print(sql)
-                mycursor.execute(sql)
-                mydb.commit()
-   
-client.run('*****')
+                with cnx.cursor() as cursor:
+                    cn = int(str(c)[1:-2])
+                    sql = str("UPDATE `counter` SET `counter`=" + str(cn+1) +  " WHERE `command`= " +arg)
+                    val = (cn+1, arg)
+                    print(cn+1)
+                    print(sql)
+                    cursor.execute(sql)
+                    cnx.commit()
+                cursor.close()
+client.run('*****')  
+
