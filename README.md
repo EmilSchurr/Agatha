@@ -1,2 +1,2 @@
 # Agatha
-crappy meme bot
+not-so-crappy meme bot
